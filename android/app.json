@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "CSE_android",
+    "slug": "CSE_android",
+    "version": "1.0.0",
+    "description": "This is a smart irrigation and provide farm support with love",
+    "orientation": "portrait",
+    "icon": "./assets/icon2.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon2.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.tpphuhungbp.CSE_android"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
