@@ -4,9 +4,7 @@ import {DrawFeedValue, FeedUpdateValue} from '../interfaces/ada';
 
 const request = axios.create({
   baseURL: 'https://io.adafruit.com/api/v2/heriota/',
-  headers: {
-    // 'X-AIO-KEY': 'aio_oyxU69bENbv6Eb4N46eTy2W4MIbD',
-  },
+  headers: {},
 });
 
 async function getFeed(path: string, options: undefined | Object = undefined): Promise<DrawFeedValue> {
