@@ -9,8 +9,9 @@ import Socket from './providers/Socket';
 import corConfig from './config/CORS';
 import {autoCreateServerRecord} from './services/ServerRecordService';
 import {autoUpdateDeviceState} from './services/DevicesService';
-
 import {autoIrrigationStart} from './services/AutoIrrigationOperation';
+import connectAdafruit, {publishData} from './utils/mqtt';
+
 dotenv.config();
 const app = express();
 const server = http.createServer(app);
@@ -43,9 +44,13 @@ const connectDB = async () => {
       console.log('Server listen on port ' + port + '...');
     });
     // set auto update record and device state
-    autoCreateServerRecord();
-    autoUpdateDeviceState();
-    autoIrrigationStart();
+    // autoCreateServerRecord();
+    // autoUpdateDeviceState();
+    // autoIrrigationStart();
+    connectAdafruit();
+    // setTimeout(() => {
+    //   publishData('heriota/feeds/cs-ce-dadn.temp-sensor', 123);
+    // }, 3000);
   } catch (error) {
     console.log(error);
   }

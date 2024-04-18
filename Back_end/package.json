@@ -36,6 +36,7 @@
     "i": "^0.3.7",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.11.10",
+    "mqtt": "^5.5.2",
     "node-notifier": "^10.0.1",
     "socket.io": "^4.6.1"
   }

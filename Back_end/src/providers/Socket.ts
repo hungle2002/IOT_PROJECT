@@ -1,6 +1,10 @@
 import {Server} from 'socket.io';
 import http from 'http';
 import Notification from '../interfaces/notification';
+import {publishData} from '../utils/mqtt';
+import {readFileModeSetting} from '../utils/readFileJson';
+import path from 'path';
+
 class Socket {
   private io: Server | null = null;
 
@@ -29,7 +33,27 @@ class Socket {
       socket.on('disconnect', () => {
         console.log('User disconnected');
       });
+
+      socket.on('update_one_device_state', (data: String[]) => {
+        console.log('Update device state: ', data);
+        publishData(`heriota/feeds/${data[0]}`, Number(data[1]));
+      });
     });
+  }
+
+  public update_one_device_state(value: String[]) {
+    console.log('Calling to socket');
+
+    const notification: Notification = {
+      title: 'UPDATE one device state',
+      message: 'Updating one device state!',
+    };
+    if (this.io) {
+      this.io.emit('update_one_device_state', value);
+      this.io.emit('notification', notification);
+    } else {
+      console.log('No socket create!!');
+    }
   }
 
   public update_device_state(device_key: String, value: Number) {
@@ -65,6 +89,41 @@ class Socket {
     };
     if (this.io) {
       this.io.emit('update_condition', value);
+      this.io.emit('notification', notification);
+    } else {
+      console.log('No socket create!!');
+    }
+  }
+
+  public update_one_condition(value: Number[]) {
+    // Handle temperature automatically
+    const temperatureSettingsData = readFileModeSetting(
+      path.join(__dirname, '../../src/config/modeSetting/temperature.json')
+    );
+
+    console.log('Light setting data: ');
+    console.log(temperatureSettingsData);
+
+    // if temperature < autoMin => turn on light, turn off fan
+    if (Number(value[0]) < Number(temperatureSettingsData.autoMin)) {
+      console.log('Below safe temperature, turn on light system automatically, turn off fan');
+      publishData('heriota/feeds/cs-ce-dadn.light-button', 1);
+      publishData('heriota/feeds/cs-ce-dadn.coolingmotor', 0);
+    }
+    // if temperature > autoMax => turn on fan, turn off light
+    if (Number(value[0]) > Number(temperatureSettingsData.autoMax)) {
+      console.log('Exceed safe temperature, turn off light system automatically, turn on fan');
+      publishData('heriota/feeds/cs-ce-dadn.light-button', 0);
+      publishData('heriota/feeds/cs-ce-dadn.coolingmotor', 1);
+    }
+
+    // [value, position]
+    const notification: Notification = {
+      title: 'UPDATE one condition',
+      message: `Update one condition at ${new Date().toLocaleString('en-US', {timeZone: 'Asia/Ho_Chi_Minh'})} `,
+    };
+    if (this.io) {
+      this.io.emit('update_one_condition', value);
       this.io.emit('notification', notification);
     } else {
       console.log('No socket create!!');
