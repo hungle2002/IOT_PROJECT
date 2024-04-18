@@ -28,7 +28,7 @@ export const DefaultModeSetting = [
     status: 258,
   },
   {
-    mode: 1,
+    mode: 0,
     safeAction: 2,
     autoMin: 50,
     autoMax: 70,
@@ -41,7 +41,7 @@ export const DefaultModeSetting = [
     status: 50,
   },
   {
-    mode: 2,
+    mode: 0,
     safeAction: 0,
     autoMin: 50,
     autoMax: 70,
@@ -55,7 +55,8 @@ export const DefaultModeSetting = [
   },
 ];
 
-export const ModeChoices = ["Automatic", "Scheduled", "Manual"];
+// export const ModeChoices = ["Automatic", "Scheduled", "Manual"];
+export const ModeChoices = ["Automatic"];
 export const SafeModeChoices = ["Ignore", "Alert", "Take action"];
 
 export default modes;

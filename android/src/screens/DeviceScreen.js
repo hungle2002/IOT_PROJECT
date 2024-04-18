@@ -6,12 +6,39 @@ import { StyleSheet, SafeAreaView, SectionList, StatusBar } from "react-native";
 import { search } from "../apiServices/searchService";
 import React, { useEffect, useState, useRef } from "react";
 import Loading from "../components/Loading";
+import { SocketContext } from "../context/socketContext";
 
 function DeviceScreen({ navigation }) {
+  const socket = React.useContext(SocketContext);
+  let listSensorData = [];
+  let listMotorData = [];
   const [reRender, setReRender] = useState(1);
   const [refreshing, setRefreshing] = React.useState(false);
-
   const [DATA, setDATA] = useState([]);
+
+  React.useEffect(() => {
+    socket.on('update_one_device_state', (value) => {
+      console.log('Current value: ', value);
+      console.log('Current list motor: ', listMotorData);
+      const updateDevice = listMotorData.filter(e => value[0].includes(e.key))[0];
+      // console.log('Update device: ', updateDevice);
+      if (updateDevice !== undefined) updateDevice.state = Number(value[1]);
+      console.log(listMotorData);
+      setReRender(0);
+      setDATA([
+        {
+          title: 'Input Sensor',
+          data: listSensorData || [],
+        },
+        {
+          title: 'Output Motor',
+          data: listMotorData || [],
+        },
+      ]);
+      setReRender(1);
+    });
+  }, [socket]);
+
   const fetchAPI = React.useCallback(async () => {
     try {
       const SampleData = [
@@ -30,6 +57,10 @@ function DeviceScreen({ navigation }) {
           SampleData[0].data.push(e);
         } else SampleData[1].data.push(e);
       });
+
+      listSensorData = SampleData[0].data.map((e) => ({key: e.key, des: e.des, typ: e.typ, state: e.state}));
+      listMotorData = SampleData[1].data.map((e) => ({key: e.key, des: e.des, typ: e.typ, state: e.state}));
+
       setDATA(SampleData);
     } catch (error) {
       console.log(error);

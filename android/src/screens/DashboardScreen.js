@@ -19,6 +19,7 @@ import { SocketContext } from "../context/socketContext";
 
 function DashboardScreen({ navigation }) {
   const socket = React.useContext(SocketContext);
+  const defaultValue = [32, 43, 118];
   const data = [
     {
       name: "Temperature",
@@ -34,9 +35,9 @@ function DashboardScreen({ navigation }) {
       name: "Lighting",
       unit: "W/m²",
       value: 149,
-      mode: 1,
-      min: "06:00",
-      max: "14:00",
+      mode: 0,
+      min: 80,
+      max: 160,
       styles: styles.lighting,
       icon: faCloudSun,
     },
@@ -44,8 +45,7 @@ function DashboardScreen({ navigation }) {
       name: "Soil moisture",
       unit: "%",
       value: 86,
-      mode: 2,
-      modeText: "Alert when outside",
+      mode: 0,
       min: 65,
       max: 85,
       styles: styles.soilMoisture,
@@ -54,7 +54,7 @@ function DashboardScreen({ navigation }) {
   ];
   const tailwind = useTailwind();
   // save value of condtion
-  const [conditionValue, setConditionValue] = React.useState([0, 0, 0]);
+  const [conditionValue, setConditionValue] = React.useState(defaultValue);
   // save all setting for condition
   const [condititonSetting, setConditionSetting] = React.useState(data);
   // save state for refresh button
@@ -78,10 +78,10 @@ function DashboardScreen({ navigation }) {
     };
   };
   // function to update value of condititon
-  const updateValue = (value) => {
-    const tmp = [value.tempValue, value.lightValue, value.soilValue];
-    setConditionValue(tmp);
-  };
+  // const updateValue = (value) => {
+  //   const tmp = [value.tempValue, value.lightValue, value.soilValue];
+  //   setConditionValue(tmp);
+  // };
   // function to update setting condition
   const updateSetting = (value) => {
     const tmp = condititonSetting.map((setting, index) => {
@@ -123,24 +123,34 @@ function DashboardScreen({ navigation }) {
   }, []);
 
   // get data for the first tim render
-  React.useEffect(() => {
-    const fetchAPI = async () => {
-      try {
-        const response = await search({
-          path: "condition",
-        });
-        updateValue(response.value);
-        updateSetting(response.condition);
-      } catch (error) {
-        console.log("error");
-      }
-    };
-    fetchAPI();
-  }, []);
+  // React.useEffect(() => {
+  //   const fetchAPI = async () => {
+  //     try {
+  //       const response = await search({
+  //         path: "condition",
+  //       });
+  //       updateValue(response.value);
+  //       updateSetting(response.condition);
+  //     } catch (error) {
+  //       console.log("error");
+  //     }
+  //   };
+  //   fetchAPI();
+  // }, []);
   // socket liston on updating condition value
+  // React.useEffect(() => {
+  //   socket.on(`update_condition`, (value) => {
+  //     setConditionValue(value);
+  //   });
+  // }, [socket]);
+
+  // socket liston on updating one condition value
   React.useEffect(() => {
-    socket.on(`update_condition`, (value) => {
-      setConditionValue(value);
+    socket.on(`update_one_condition`, (value) => {
+      const vewValue = [...defaultValue];
+      defaultValue[value[1]] = value[0];
+      vewValue[value[1]] = value[0];
+      setConditionValue(vewValue);
     });
   }, [socket]);
 

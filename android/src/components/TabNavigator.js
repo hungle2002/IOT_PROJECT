@@ -162,14 +162,8 @@ function TabNavigator() {
             iconName = focused ? "ios-home" : "ios-home-outline";
           } else if (route.name === "Mode") {
             iconName = focused ? "speedometer" : "speedometer-outline";
-          } else if (route.name === "Detection") {
-            iconName = focused ? "bug" : "bug-outline";
-          } else if (route.name === "Sercurity") {
-            iconName = focused ? "business-sharp" : "business-outline";
           } else if (route.name === "Devices") {
             iconName = focused ? "rocket" : "rocket-outline";
-          } else if (route.name === "Statistic") {
-            iconName = focused ? "analytics" : "analytics-outline";
           }
 
           // You can add more icons for other screens here
@@ -188,10 +182,7 @@ function TabNavigator() {
       {/* Add screens here */}
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Devices" component={DeviceScreen} />
-      <Tab.Screen name="Statistic" component={StatisticScreen} />
       <Tab.Screen name="Mode" component={ModeScreen} />
-      <Tab.Screen name="Detection" component={DetectionScreen} />
-      <Tab.Screen name="Sercurity" component={SercurityScreen} />
     </Tab.Navigator>
   );
 }
