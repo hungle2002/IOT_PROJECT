@@ -65,16 +65,6 @@
 			"marginTop": -40
 		}
 	},
-	"mb-2": {
-		"style": {
-			"marginBottom": 8
-		}
-	},
-	"mb-3": {
-		"style": {
-			"marginBottom": 12
-		}
-	},
 	"mb-6": {
 		"style": {
 			"marginBottom": 24

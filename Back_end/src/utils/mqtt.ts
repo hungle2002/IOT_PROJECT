@@ -3,7 +3,7 @@ import {deviceKeysArray, conditionKeyArray, motorKeyArray} from '../config/devic
 import Socket from '../providers/Socket';
 
 const adafruitUsername = 'heriota'; // Replace with your Adafruit username
-const adafruitKey = 'aio_PeJv96mtrfpDsKNLFfcmbP4KMiFk'; // Replace with your Adafruit key
+const adafruitKey = 'aio_UlPx45wbkPcVhSAPXQfeSfTO4aGg'; // Replace with your Adafruit key
 const brokerUrl = 'mqtts://io.adafruit.com/api/v2/heriota/'; // Replace with your username
 
 let client: MqttClient;

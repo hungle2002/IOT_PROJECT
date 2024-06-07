@@ -154,6 +154,19 @@ function DashboardScreen({ navigation }) {
     });
   }, [socket]);
 
+  console.log('Current setting value: ', condititonSetting);
+
+
+  // socket liston on updating setting info
+  React.useEffect(() => {
+    socket.on(`update_all_settings`, (value) => {
+      const newConditionSetting = [...condititonSetting];
+      newConditionSetting[0].max = value["0"].autoMax;
+      newConditionSetting[0].min = value["0"].autoMin;
+      setConditionSetting(newConditionSetting);
+    });
+  }, [socket]);
+
   return (
     <ScrollView
       refreshControl={

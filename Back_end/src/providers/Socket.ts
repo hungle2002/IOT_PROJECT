@@ -101,7 +101,7 @@ class Socket {
       path.join(__dirname, '../../src/config/modeSetting/temperature.json')
     );
 
-    console.log('Light setting data: ');
+    console.log('Temperature setting data: ');
     console.log(temperatureSettingsData);
 
     // if temperature < autoMin => turn on light, turn off fan
