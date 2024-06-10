@@ -7,18 +7,43 @@ import {
   TouchableOpacity,
 } from "react-native";
 import Modal from "react-native-modal";
+import { create } from "../apiServices/searchService";
 import { Picker } from "@react-native-picker/picker";
 
-const PopupMenu = ({ isVisible, onClose }) => {
+const PopupMenu = ({ isVisible, onClose, onRefresh }) => {
   const [solutionAmount, setSolutionAmount] = useState("");
   const [mixingMode, setMixingMode] = useState(null);
   const [mixingBucket, setMixingBucket] = useState(null);
+  const [name, setName] = useState("");
+
+  const handleCreateFertilzier = async () => {
+    try {
+      const response = await create({
+        path: "fertilizer",
+        data: {
+          key: mixingBucket,
+          name: name,
+          type: mixingMode,
+          mixVolume: Number(solutionAmount),
+          waterVolume: 200,
+          duration: 10000
+        }
+      });
+      // updateValue(response.value);
+      updateSetting(response);
+    } catch (error) {
+      console.log("error");
+    }
+    await onRefresh();
+    onClose();
+  }
 
   return (
     <Modal isVisible={isVisible} onBackdropPress={onClose}>
       <View style={styles.modalContent}>
         <Text style={styles.headerText}>Tạo bộ trộn mới</Text>
-        <TextInput style={styles.input} placeholder="Tên bộ trộn" />
+        <TextInput style={styles.input} placeholder="Tên bộ trộn" value={name}
+            onChangeText={setName}/>
         <View style={styles.row}>
           <Text>Số lượng dung dịch cần trộn</Text>
           <TextInput
@@ -50,13 +75,13 @@ const PopupMenu = ({ isVisible, onClose }) => {
             onValueChange={(value) => setMixingMode(value)}
             useNativeAndroidPickerStyle={false}
           >
-            <Picker.Item style={styles.pickertext} label="Sơ" value="1" />
+            <Picker.Item style={styles.pickertext} label="Sơ" value="Sơ" />
             <Picker.Item
               style={styles.pickertext}
               label="Trung bình"
-              value="2"
+              value="Trung bình"
             />
-            <Picker.Item style={styles.pickertext} label="Nhuyễn" value="3" />
+            <Picker.Item style={styles.pickertext} label="Nhuyễn" value="Nhuyễn" />
           </Picker>
         </View>
         <View style={styles.row}>
@@ -72,8 +97,8 @@ const PopupMenu = ({ isVisible, onClose }) => {
             <Picker.Item style={styles.pickertext} label="3" value="3" />
           </Picker>
         </View>
-        <TouchableOpacity style={styles.button} onPress={onClose}>
-          <Text style={styles.buttonText}>Bắt đầu trộn</Text>
+        <TouchableOpacity style={styles.button} onPress={handleCreateFertilzier}>
+          <Text style={styles.buttonText}>Tạo bộ trộn</Text>
         </TouchableOpacity>
       </View>
     </Modal>

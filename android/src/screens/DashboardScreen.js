@@ -15,6 +15,8 @@ import { SocketContext } from "../context/socketContext";
 import ProgressBar from "react-native-progress/Bar";
 import PopupMenu from "../components/Popupmodel";
 
+const FERTILIZER_RUN = 10 * 1000;
+
 function DashboardScreen({ navigation }) {
   const socket = React.useContext(SocketContext);
   const defaultValue = [32, 43, 118];
@@ -93,26 +95,32 @@ function DashboardScreen({ navigation }) {
   //   setConditionValue(tmp);
   // };
   // function to update setting condition
-  const updateSetting = (value) => {
-    const tmp = condititonSetting.map((setting, index) => {
-      const curValue = value[index];
-      let curSetting = setting;
-      curSetting.mode = curValue.mode;
+  const updateSetting = (res) => {
+    // const 
+    const { activeFertilizer, fertilizerSchedule} = res;
+    const currentSetting = fertilizerSchedule.map((item, id) => {
+      let currentValue = 0;
+      let remainingTime = FERTILIZER_RUN;
 
-      if (setting.mode == 0) {
-        curSetting.min = curValue.autoMin;
-        curSetting.max = curValue.autoMax;
-      } else if (setting.mode == 1) {
-        curSetting.min = curValue.schedStart;
-        curSetting.max = curValue.schedEnd;
-      } else {
-        curSetting.min = curValue.manualMin;
-        curSetting.max = curValue.manualMax;
+      if (id === activeFertilizer.mixerId) {
+        remainingTime = new Date(activeFertilizer.startedAt) + FERTILIZER_RUN - new Date();
+        currentValue = remainingTime / FERTILIZER_RUN * item.mixVolume;
+      } else if (id < activeFertilizer.mixerId) {
+        currentValue = item.mixVolume;
+        remainingTime = 0
       }
 
-      return curSetting;
-    });
-    setConditionSetting(tmp);
+      return {
+        name: `Thùng ${id + 1}`,
+        value: currentValue,
+        mode : item.type,
+        min: 0,
+        max: item.mixVolume,
+        remainingTime: remainingTime,
+        fertilizer: item.name,
+      }
+    })
+    setConditionSetting(currentSetting);
   };
   // function to handle refresh
   const onRefresh = React.useCallback(async () => {
@@ -121,7 +129,7 @@ function DashboardScreen({ navigation }) {
     const fetchAPI = async () => {
       try {
         const response = await search({
-          path: "condition",
+          path: "fertilizer/active",
         });
         updateSetting(response.condition);
       } catch (error) {
@@ -132,21 +140,20 @@ function DashboardScreen({ navigation }) {
     setRefreshing(false);
   }, []);
 
-  // get data for the first tim render
-  // React.useEffect(() => {
-  //   const fetchAPI = async () => {
-  //     try {
-  //       const response = await search({
-  //         path: "condition",
-  //       });
-  //       updateValue(response.value);
-  //       updateSetting(response.condition);
-  //     } catch (error) {
-  //       console.log("error");
-  //     }
-  //   };
-  //   fetchAPI();
-  // }, []);
+  // get data for the first time render
+  React.useEffect(() => {
+    const fetchAPI = async () => {
+      try {
+        const response = await search({
+          path: "fertilizer/active",
+        });
+        updateSetting(response);
+      } catch (error) {
+        console.log("error");
+      }
+    };
+    fetchAPI();
+  }, []);
   // socket liston on updating condition value
   // React.useEffect(() => {
   //   socket.on(`update_condition`, (value) => {
@@ -155,26 +162,25 @@ function DashboardScreen({ navigation }) {
   // }, [socket]);
 
   // socket liston on updating one condition value
-  React.useEffect(() => {
-    socket.on(`update_one_condition`, (value) => {
-      const vewValue = [...defaultValue];
-      defaultValue[value[1]] = value[0];
-      vewValue[value[1]] = value[0];
-      setConditionValue(vewValue);
-    });
-  }, [socket]);
-
+  // React.useEffect(() => {
+  //   socket.on(`update_one_condition`, (value) => {
+  //     const vewValue = [...defaultValue];
+  //     defaultValue[value[1]] = value[0];
+  //     vewValue[value[1]] = value[0];
+  //     setConditionValue(vewValue);
+  //   });
+  // }, [socket]);
   console.log("Current setting value: ", condititonSetting);
 
   // socket liston on updating setting info
-  React.useEffect(() => {
-    socket.on(`update_all_settings`, (value) => {
-      const newConditionSetting = [...condititonSetting];
-      newConditionSetting[0].max = value["0"].autoMax;
-      newConditionSetting[0].min = value["0"].autoMin;
-      setConditionSetting(newConditionSetting);
-    });
-  }, [socket]);
+  // React.useEffect(() => {
+  //   socket.on(`update_all_settings`, (value) => {
+  //     const newConditionSetting = [...condititonSetting];
+  //     newConditionSetting[0].max = value["0"].autoMax;
+  //     newConditionSetting[0].min = value["0"].autoMin;
+  //     setConditionSetting(newConditionSetting);
+  //   });
+  // }, [socket]);
 
   return (
     <ScrollView
@@ -222,6 +228,7 @@ function DashboardScreen({ navigation }) {
         <PopupMenu
           isVisible={isModalVisible}
           onClose={() => setModalVisible(false)}
+          onRefresh={onRefresh}
         />
       </View>
     </ScrollView>
