@@ -4,52 +4,47 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  TouchableOpacity,
 } from "react-native";
 import { useTailwind } from "tailwind-rn";
 import * as React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import {
-  faThermometerQuarter,
-  faCloudSun,
-  faDroplet,
-} from "@fortawesome/free-solid-svg-icons";
 import { search } from "../apiServices/searchService";
 import Modes from "../config/mode";
 import { SocketContext } from "../context/socketContext";
+import ProgressBar from "react-native-progress/Bar";
+import PopupMenu from "../components/Popupmodel";
 
 function DashboardScreen({ navigation }) {
   const socket = React.useContext(SocketContext);
   const defaultValue = [32, 43, 118];
   const data = [
     {
-      name: "Temperature",
-      unit: "°C",
-      value: 24,
+      name: "Thùng 1",
+      value: 50,
       mode: 0,
-      min: 15,
-      max: 30,
-      styles: styles.temperature,
-      icon: faThermometerQuarter,
+      min: 0,
+      max: 500,
+      remainingTime: "5 phút 7 giây",
+      fertilizer: "Kali",
     },
     {
-      name: "Lighting",
-      unit: "W/m²",
-      value: 149,
+      name: "Thùng 2",
+      value: 40,
       mode: 0,
-      min: 80,
-      max: 160,
-      styles: styles.lighting,
-      icon: faCloudSun,
+      min: 0,
+      max: 450,
+      remainingTime: "4 phút 30 giây",
+      fertilizer: "Đạm",
     },
     {
-      name: "Soil moisture",
-      unit: "%",
+      name: "Thùng 3",
       value: 86,
       mode: 0,
-      min: 65,
-      max: 85,
-      styles: styles.soilMoisture,
-      icon: faDroplet,
+      min: 0,
+      max: 200,
+      remainingTime: "6 phút 20 giây",
+      fertilizer: "Lân",
     },
   ];
   const tailwind = useTailwind();
@@ -59,6 +54,21 @@ function DashboardScreen({ navigation }) {
   const [condititonSetting, setConditionSetting] = React.useState(data);
   // save state for refresh button
   const [refreshing, setRefreshing] = React.useState(false);
+  // pop up model
+  const [isModalVisible, setModalVisible] = React.useState(false);
+
+  // React.useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setConditionSetting((prevConditionSetting) =>
+  //       prevConditionSetting.map((item) => {
+  //         const newValue = item.value < item.max ? item.value + 1 : item.max;
+  //         return { ...item, value: newValue };
+  //       })
+  //     );
+  //   }, 1000); // Update every second
+
+  //   return () => clearInterval(interval);
+  // }, []);
 
   const getStatusDisplay = (value, start, end) => {
     if (value > start && value < end) {
@@ -154,8 +164,7 @@ function DashboardScreen({ navigation }) {
     });
   }, [socket]);
 
-  console.log('Current setting value: ', condititonSetting);
-
+  console.log("Current setting value: ", condititonSetting);
 
   // socket liston on updating setting info
   React.useEffect(() => {
@@ -173,158 +182,85 @@ function DashboardScreen({ navigation }) {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      <View
-        style={tailwind(
-          "w-full h-[700px] flex-1 flex-col justify-evenly items-center"
-        )}
-      >
+      <View style={tailwind("w-full flex-1 flex-col items-center")}>
         {condititonSetting.map((item, index) => (
-          <View style={item.styles} key={item.name}>
-            {/* <View style={tailwind("w-1/2 h-full bg-black")}>
-          </View> */}
-            <View style={styles.blockContainer}>
-              <View style={styles.leftContent}>
-                <View style={tailwind("flex items-center")}>
-                  <View style={tailwind("flex items-start w-full")}>
-                    <FontAwesomeIcon icon={item.icon} size={48} />
-                    <View
-                      style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        width: "100%",
-                        marginTop: 10,
-                      }}
-                    >
-                      <Text style={tailwind("text-3xl font-bold mr-1")}>
-                        {conditionValue[index]}
-                      </Text>
-
-                      <Text style={tailwind("text-xl")}>{item.unit}</Text>
-                    </View>
-                  </View>
-                  <Text style={tailwind("mt-2 text-lg")}>{item.name}</Text>
-                </View>
-              </View>
+          <View key={index} style={styles.circularRect}>
+            <View style={tailwind("items-center")}>
+              <Text>{item.name}</Text>
             </View>
-
-            <View style={styles.rightContent}>
-              <View
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  width: "100%",
-                }}
-              >
-                <Text style={tailwind("text-lg font-semibold mt-6")}>
-                  {Modes[item.mode].title.toUpperCase()}
-                </Text>
-                <Text style={tailwind("mt-2")}>{Modes[item.mode].action}</Text>
-                <Text style={tailwind("text-lg pt-1 mb-6")}>
-                  {`${item.min} - ${item.max}`}{" "}
-                  {item.mode !== 1 && <Text>{item.unit}</Text>}
-                </Text>
-
-                <View
-                  style={{
-                    width: "30%",
-                    height: "15%",
-                    alignSelf: "center",
-                    borderRadius: 20,
-                    borderWidth: 1,
-                    borderColor: getStatusDisplay(
-                      conditionValue[index],
-                      item.min,
-                      item.max
-                    ).color,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text
-                    style={{
-                      width: "100%",
-                      textAlign: "center",
-                      color: getStatusDisplay(
-                        conditionValue[index],
-                        item.min,
-                        item.max
-                      ).color,
-                    }}
-                  >
-                    {
-                      getStatusDisplay(
-                        conditionValue[index],
-                        item.min,
-                        item.max
-                      ).text
-                    }
-                  </Text>
-                </View>
-              </View>
+            <ProgressBar
+              progress={item.value / (item.max - item.min)}
+              height={20}
+              style={styles.progressbar}
+            />
+            <View style={tailwind("flex-1 flex-row justify-between")}>
+              <Text style={styles.infoText}>Thời gian còn lại:</Text>
+              <Text style={styles.infoText}>{item.remainingTime}</Text>
+            </View>
+            <View style={tailwind("flex-1 flex-row justify-between")}>
+              <Text style={styles.infoText}>Số ml dung dịch đã bơm:</Text>
+              <Text style={styles.infoText}>
+                {item.value} / {item.max} ml
+              </Text>
+            </View>
+            <View style={tailwind("flex-1 flex-row justify-between")}>
+              <Text style={styles.infoText}>Tên dung dịch:</Text>
+              <Text style={styles.infoText}>{item.fertilizer}</Text>
             </View>
           </View>
         ))}
+      </View>
+      <View>
+        <View style={styles.container}>
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            style={styles.button}
+          >
+            <Text style={styles.buttonText}>Tạo mới bộ trộn phân</Text>
+          </TouchableOpacity>
+        </View>
+        <PopupMenu
+          isVisible={isModalVisible}
+          onClose={() => setModalVisible(false)}
+        />
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  temperature: {
-    backgroundColor: "#D0EFF5",
-    width: "90%",
-    height: "30%",
+  circularRect: {
+    backgroundColor: "white",
     borderRadius: 20,
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  lighting: {
-    backgroundColor: "#D1EED8",
+    padding: 10,
+    marginVertical: 10,
     width: "90%",
-    height: "30%",
-    borderRadius: 20,
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
   },
-  soilMoisture: {
-    backgroundColor: "#F0F6D2",
-    width: "90%",
-    height: "30%",
-    borderRadius: 20,
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
+  progressbar: {
+    width: "100%",
   },
-  blockContainer: {
-    width: "50%",
-    height: "80%",
-    display: "flex",
-    flexDirection: "row",
+  infoText: {
+    color: "#00796B",
+    fontSize: 14,
+    marginVertical: 2,
+  },
+  container: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    borderRightColor: "white",
-    borderRightWidth: 1,
   },
-  leftContent: {
-    width: "65%",
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-evenly",
+  button: {
+    backgroundColor: "#ffffff",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    alignItems: "center",
+    width: "90%",
   },
-  rightContent: {
-    width: "50%",
-    height: "80%",
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "flex-start",
+  buttonText: {
+    color: "black",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 
