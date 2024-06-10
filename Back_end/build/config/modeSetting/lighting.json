@@ -1,0 +1,12 @@
+{
+  "mode": 1,
+  "safeAction": 1,
+  "autoMin": 100,
+  "autoMax": 200,
+  "schedStart": "06:00",
+  "schedEnd": "18:00",
+  "safeMin": 80,
+  "safeMax": 220,
+  "manualMin": 90,
+  "manualMax": 210
+}
