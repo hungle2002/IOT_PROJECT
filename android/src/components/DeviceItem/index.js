@@ -47,44 +47,6 @@ const DeviceItem = ({ device }) => {
         />
         <Text style={tailwind("text-xl px-3")}>{device.des}</Text>
       </View>
-      <View>
-        {device.typ === "Sensor" ? (
-          <TouchableOpacity
-            style={tailwind(
-              "w-[70px] h-[40px] justify-center items-center rounded-full"
-            )}
-            onPress={() => {}}
-          >
-            <Text style={tailwind("text-teal-500 text-lg")}>Good</Text>
-          </TouchableOpacity>
-        ) : loading ? (
-          <ActivityIndicator style={tailwind("mr-5")} size={30} color="gray" />
-        ) : state > 0 ? (
-          <TouchableOpacity
-            style={tailwind(
-              "w-[70px] h-[40px] bg-teal-200 justify-center items-center rounded-full"
-            )}
-            onPress={() => handleButton()}
-          >
-            <Text style={tailwind("text-teal-500 text-lg")}>On</Text>
-          </TouchableOpacity>
-        ) : state === 0 ? (
-          <TouchableOpacity
-            style={tailwind(
-              "w-[70px] h-[40px] bg-rose-500 justify-center items-center rounded-full"
-            )}
-            onPress={() => handleButton()}
-          >
-            <Text style={tailwind("text-white text-lg")}>Off</Text>
-          </TouchableOpacity>
-        ) : (
-          <FontAwesomeIcon
-            icon={faSpinner}
-            size={30}
-            style={tailwind("animate-spin")}
-          />
-        )}
-      </View>
     </View>
   );
 };

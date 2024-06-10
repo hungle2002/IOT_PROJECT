@@ -27,7 +27,7 @@ function DashboardScreen({ navigation }) {
       mode: 0,
       min: 0,
       max: 500,
-      remainingTime: "5 phút 7 giây",
+      startedAt: "5 phút 7 giây",
       fertilizer: "Kali",
     },
     {
@@ -36,7 +36,7 @@ function DashboardScreen({ navigation }) {
       mode: 0,
       min: 0,
       max: 450,
-      remainingTime: "4 phút 30 giây",
+      startedAt: "4 phút 30 giây",
       fertilizer: "Đạm",
     },
     {
@@ -45,19 +45,19 @@ function DashboardScreen({ navigation }) {
       mode: 0,
       min: 0,
       max: 200,
-      remainingTime: "6 phút 20 giây",
+      startedAt: "6 phút 20 giây",
       fertilizer: "Lân",
     },
   ];
   const tailwind = useTailwind();
   // save value of condtion
-  const [conditionValue, setConditionValue] = React.useState(defaultValue);
   // save all setting for condition
   const [condititonSetting, setConditionSetting] = React.useState(data);
   // save state for refresh button
   const [refreshing, setRefreshing] = React.useState(false);
   // pop up model
   const [isModalVisible, setModalVisible] = React.useState(false);
+
 
   // React.useEffect(() => {
   //   const interval = setInterval(() => {
@@ -72,23 +72,6 @@ function DashboardScreen({ navigation }) {
   //   return () => clearInterval(interval);
   // }, []);
 
-  const getStatusDisplay = (value, start, end) => {
-    if (value > start && value < end) {
-      return {
-        text: "Good",
-        color: "black",
-      };
-    } else if (value > end) {
-      return {
-        text: "High",
-        color: "red",
-      };
-    }
-    return {
-      text: "Low",
-      color: "#031cab",
-    };
-  };
   // function to update value of condititon
   // const updateValue = (value) => {
   //   const tmp = [value.tempValue, value.lightValue, value.soilValue];
@@ -98,16 +81,17 @@ function DashboardScreen({ navigation }) {
   const updateSetting = (res) => {
     // const 
     const { activeFertilizer, fertilizerSchedule} = res;
-    const currentSetting = fertilizerSchedule.map((item, id) => {
+    const currentSetting = fertilizerSchedule?.map((item, id) => {
+
       let currentValue = 0;
-      let remainingTime = FERTILIZER_RUN;
+      let startedAt = FERTILIZER_RUN;
 
       if (id === activeFertilizer.mixerId) {
-        remainingTime = new Date(activeFertilizer.startedAt) + FERTILIZER_RUN - new Date();
-        currentValue = remainingTime / FERTILIZER_RUN * item.mixVolume;
+        startedAt = new Date(activeFertilizer.startedAt);
+        currentValue = (new Date().valueOf() + FERTILIZER_RUN - startedAt.valueOf() > FERTILIZER_RUN ? FERTILIZER_RUN : new Date().valueOf() + FERTILIZER_RUN - startedAt.valueOf()) / FERTILIZER_RUN * item.mixVolume;
       } else if (id < activeFertilizer.mixerId) {
         currentValue = item.mixVolume;
-        remainingTime = 0
+        startedAt = 0
       }
 
       return {
@@ -116,7 +100,7 @@ function DashboardScreen({ navigation }) {
         mode : item.type,
         min: 0,
         max: item.mixVolume,
-        remainingTime: remainingTime,
+        startedAt: startedAt,
         fertilizer: item.name,
       }
     })
@@ -131,7 +115,7 @@ function DashboardScreen({ navigation }) {
         const response = await search({
           path: "fertilizer/active",
         });
-        updateSetting(response.condition);
+        updateSetting(response);
       } catch (error) {
         console.log("error");
       }
@@ -143,6 +127,7 @@ function DashboardScreen({ navigation }) {
   // get data for the first time render
   React.useEffect(() => {
     const fetchAPI = async () => {
+      console.log('Calling api');
       try {
         const response = await search({
           path: "fertilizer/active",
@@ -162,25 +147,12 @@ function DashboardScreen({ navigation }) {
   // }, [socket]);
 
   // socket liston on updating one condition value
-  // React.useEffect(() => {
-  //   socket.on(`update_one_condition`, (value) => {
-  //     const vewValue = [...defaultValue];
-  //     defaultValue[value[1]] = value[0];
-  //     vewValue[value[1]] = value[0];
-  //     setConditionValue(vewValue);
-  //   });
-  // }, [socket]);
-  console.log("Current setting value: ", condititonSetting);
+  React.useEffect(() => {
+    socket.on(`update_fertilizer_mixer`, (value) => {
+      // [value, id, startAt]
+    });
+  }, [socket]);
 
-  // socket liston on updating setting info
-  // React.useEffect(() => {
-  //   socket.on(`update_all_settings`, (value) => {
-  //     const newConditionSetting = [...condititonSetting];
-  //     newConditionSetting[0].max = value["0"].autoMax;
-  //     newConditionSetting[0].min = value["0"].autoMin;
-  //     setConditionSetting(newConditionSetting);
-  //   });
-  // }, [socket]);
 
   return (
     <ScrollView
@@ -189,7 +161,7 @@ function DashboardScreen({ navigation }) {
       }
     >
       <View style={tailwind("w-full flex-1 flex-col items-center")}>
-        {condititonSetting.map((item, index) => (
+        {condititonSetting?.map((item, index) => (
           <View key={index} style={styles.circularRect}>
             <View style={tailwind("items-center")}>
               <Text>{item.name}</Text>
@@ -201,7 +173,7 @@ function DashboardScreen({ navigation }) {
             />
             <View style={tailwind("flex-1 flex-row justify-between")}>
               <Text style={styles.infoText}>Thời gian còn lại:</Text>
-              <Text style={styles.infoText}>{item.remainingTime}</Text>
+              <Text style={styles.infoText}>{item?.remainingTime}</Text>
             </View>
             <View style={tailwind("flex-1 flex-row justify-between")}>
               <Text style={styles.infoText}>Số ml dung dịch đã bơm:</Text>

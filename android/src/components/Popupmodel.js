@@ -29,10 +29,8 @@ const PopupMenu = ({ isVisible, onClose, onRefresh }) => {
           duration: 10000
         }
       });
-      // updateValue(response.value);
-      updateSetting(response);
     } catch (error) {
-      console.log("error");
+      console.log(error);
     }
     await onRefresh();
     onClose();
