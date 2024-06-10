@@ -97,13 +97,14 @@ function DashboardScreen({ navigation }) {
       return {
         name: `Thùng ${id + 1}`,
         value: currentValue,
-        mode : item.type,
+        mode: item.type,
         min: 0,
         max: item.mixVolume,
         startedAt: startedAt,
         fertilizer: item.name,
-      }
-    })
+      };
+    });
+    // console.log(currentSetting);
     setConditionSetting(currentSetting);
   };
   // function to handle refresh
@@ -132,9 +133,10 @@ function DashboardScreen({ navigation }) {
         const response = await search({
           path: "fertilizer/active",
         });
+        console.log(response);
         updateSetting(response);
       } catch (error) {
-        console.log("error");
+        console.log(error);
       }
     };
     fetchAPI();
