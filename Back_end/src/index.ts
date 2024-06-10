@@ -29,6 +29,7 @@ app.use('/api/v1/device/', route.deviceRoute);
 app.use('/api/v1/settings/', route.settingsRoute);
 app.use('/api/v1/statistic/', route.statisticRoute);
 app.use('/api/v1/auth/', route.authRoute);
+app.use('/api/v1/fertilizer/', route.fertilizerRoute);
 
 // using middlewares
 app.use(middlewares.notFoundMiddleware);

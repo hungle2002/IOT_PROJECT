@@ -4,6 +4,8 @@ import Notification from '../interfaces/notification';
 import {publishData} from '../utils/mqtt';
 import {readFileModeSetting} from '../utils/readFileJson';
 import path from 'path';
+import Fertilizer from '../repositories/Fertilizer';
+import {areaKey, fertilizerKey, pumpKey, sensorKey} from '../config/sensorKeys';
 
 class Socket {
   private io: Server | null = null;
@@ -34,10 +36,18 @@ class Socket {
         console.log('User disconnected');
       });
 
-      socket.on('update_one_device_state', (data: String[]) => {
-        console.log('Update device state: ', data);
-        publishData(`heriota/feeds/${data[0]}`, Number(data[1]));
+      // socket.on('update_one_device_state', (data: String[]) => {
+      //   console.log('Update device state: ', data);
+      //   publishData(`heriota/feeds/${data[0]}`, Number(data[1]));
+      // });
+
+      socket.on('update_device', (data: string[]) => {
+        console.log('Update device: ', data);
+        publishData(data[0], Number(data[1]));
       });
+
+      // console.log('Test publish data pumpin');
+      // publishData(pumpKey[0], 1);
     });
   }
 
@@ -162,6 +172,76 @@ class Socket {
     if (this.io) {
       this.io.emit('notification', notification);
       this.io.emit('update_all_settings', data);
+    } else {
+      console.log('No socket create!!');
+    }
+  }
+
+  public update_fertilizer_mixer(value: number, id: number, startAt: Date) {
+    if (this.io) {
+      this.io.emit('update_fertilizer_mixer', [value, id, startAt]);
+    } else {
+      console.log('No socket create!!');
+    }
+    // update database
+    Fertilizer.updateActiveFertilizer({
+      mixerId: id,
+      ...(value === 1 ? {startedAt: startAt} : {endedAt: startAt}),
+      pumpIn: false,
+      pumpOut: false,
+      areaId: 0,
+    });
+  }
+
+  public update_pump(value: number, isPumpIn: boolean) {
+    // if (value === 0) {
+    //   return;
+    // }
+    console.log('Update pump: ', value, isPumpIn);
+    // if (isPumpIn) {
+    //   publishData(pumpKey[1], 0);
+    // } else {
+    //   publishData(pumpKey[0], 0);
+    // }
+
+    if (this.io) {
+      this.io.emit('update_pump', [value, isPumpIn]);
+      // update database
+      if (value === 1) {
+        Fertilizer.updateActiveFertilizer({
+          ...(isPumpIn ? {pumpIn: true, startedAt: new Date()} : {pumpOut: true, startedAt: new Date()}),
+        });
+      } else {
+        Fertilizer.updateActiveFertilizer({
+          ...(isPumpIn ? {pumpIn: false, endedAt: new Date()} : {pumpOut: false, endedAt: new Date()}),
+        });
+      }
+      // Fertilizer.updateActiveFertilizer({
+      //   ...(isPumpIn
+      //     ? {pumpIn: true, pumpOut: false, startedAt: new Date()}
+      //     : {pumpOut: true, pumpIn: false, startedAt: new Date()}),
+      // });
+    } else {
+      console.log('No socket create!!');
+    }
+  }
+
+  public update_area(value: number, id: number) {
+    if (value === 0) {
+      return;
+    }
+    console.log('Update area: ', value, id);
+    areaKey.forEach((key, keyId) => {
+      if (keyId !== id) {
+        publishData(key, 0);
+      }
+    });
+    if (this.io) {
+      this.io.emit('update_area', [value, id]);
+      // update database
+      Fertilizer.updateActiveFertilizer({
+        areaId: id,
+      });
     } else {
       console.log('No socket create!!');
     }
