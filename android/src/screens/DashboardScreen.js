@@ -96,30 +96,32 @@ function DashboardScreen({ navigation }) {
   // };
   // function to update setting condition
   const updateSetting = (res) => {
-    // const 
-    const { activeFertilizer, fertilizerSchedule} = res;
+    // const
+    const { activeFertilizer, fertilizerSchedule } = res;
     const currentSetting = fertilizerSchedule.map((item, id) => {
       let currentValue = 0;
       let remainingTime = FERTILIZER_RUN;
 
       if (id === activeFertilizer.mixerId) {
-        remainingTime = new Date(activeFertilizer.startedAt) + FERTILIZER_RUN - new Date();
-        currentValue = remainingTime / FERTILIZER_RUN * item.mixVolume;
+        remainingTime =
+          new Date(activeFertilizer.startedAt) + FERTILIZER_RUN - new Date();
+        currentValue = (remainingTime / FERTILIZER_RUN) * item.mixVolume;
       } else if (id < activeFertilizer.mixerId) {
         currentValue = item.mixVolume;
-        remainingTime = 0
+        remainingTime = 0;
       }
 
       return {
         name: `Thùng ${id + 1}`,
         value: currentValue,
-        mode : item.type,
+        mode: item.type,
         min: 0,
         max: item.mixVolume,
         remainingTime: remainingTime,
         fertilizer: item.name,
-      }
-    })
+      };
+    });
+    // console.log(currentSetting);
     setConditionSetting(currentSetting);
   };
   // function to handle refresh
@@ -147,9 +149,10 @@ function DashboardScreen({ navigation }) {
         const response = await search({
           path: "fertilizer/active",
         });
+        console.log(response);
         updateSetting(response);
       } catch (error) {
-        console.log("error");
+        console.log(error);
       }
     };
     fetchAPI();

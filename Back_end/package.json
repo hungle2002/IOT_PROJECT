@@ -38,6 +38,7 @@
     "mongoose": "^5.11.10",
     "mqtt": "^5.5.2",
     "node-notifier": "^10.0.1",
-    "socket.io": "^4.6.1"
+    "socket.io": "^4.6.1",
+    "tsc": "^2.0.4"
   }
 }
