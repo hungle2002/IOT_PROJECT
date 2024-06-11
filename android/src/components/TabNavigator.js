@@ -10,6 +10,7 @@ import {
   ModeScreen,
   SercurityScreen,
   StatisticScreen,
+  WaterScreen,
 } from "../screens";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
@@ -164,6 +165,8 @@ function TabNavigator() {
             iconName = focused ? "speedometer" : "speedometer-outline";
           } else if (route.name === "Devices") {
             iconName = focused ? "rocket" : "rocket-outline";
+          } else if (route.name === "Water") {
+            iconName = focused ? "rocket" : "rocket-outline";
           }
 
           // You can add more icons for other screens here
@@ -181,6 +184,7 @@ function TabNavigator() {
     >
       {/* Add screens here */}
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
+      <Tab.Screen name="Water" component={WaterScreen} />
       <Tab.Screen name="Devices" component={DeviceScreen} />
       <Tab.Screen name="Mode" component={ModeScreen} />
     </Tab.Navigator>
