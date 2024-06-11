@@ -11,14 +11,17 @@ import {
 import { useTailwind } from "tailwind-rn";
 import * as Progress from "react-native-progress";
 import { search } from "../apiServices/searchService";
+import { SocketContext } from "../context/socketContext";
 
 function WaterScreen() {
+  const socket = React.useContext(SocketContext);
   const tailwind = useTailwind();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedGarden, setSelectedGarden] = useState("1");
   const [progressvalue, setprogressvalue] = useState(0.3);
   const [time, setTime] = useState("1 Phút");
   const [value, setValue] = useState(50);
+  const [systemStatus, setSystemStatus] = useState("0");
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     // update condition setting
@@ -59,6 +62,15 @@ function WaterScreen() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleUpdateArea = (key) => {
+    try {
+      socket.emit("update_device", [`iot-btl.area${key}`, 1]);
+      setSelectedGarden(key);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <ScrollView
       refreshControl={
@@ -75,18 +87,18 @@ function WaterScreen() {
                   styles.rightSmallBox,
                   selectedGarden === "1" && styles.selectedBox,
                 ]}
-                onPress={() => setSelectedGarden("1")}
+                onPress={() => handleUpdateArea("1")}
               >
-                <Text>Vườn 1</Text>
+                <Text style={{color: 'white', fontWeight: 'bold'}}>Vườn 1</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
                   styles.rightSmallBox,
                   selectedGarden === "2" && styles.selectedBox,
                 ]}
-                onPress={() => setSelectedGarden("2")}
+                onPress={() => handleUpdateArea("2")}
               >
-                <Text>Vườn 2</Text>
+                <Text style={{color: 'white', fontWeight: 'bold'}}>Vườn 2</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity
@@ -94,19 +106,22 @@ function WaterScreen() {
                 styles.rightSmallBox,
                 selectedGarden === "3" && styles.selectedBox,
               ]}
-              onPress={() => setSelectedGarden("3")}
+              onPress={() => handleUpdateArea("3")}
             >
-              <Text>Vườn 3</Text>
+              <Text style={{color: 'white', fontWeight: 'bold'}}>Vườn 3</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.box}>
             <TouchableOpacity style={styles.leftSmallBox}>
-              <Text>Tưới nước</Text>
+              <Text style={{fontSize: 16}}>Bơm nước</Text>
             </TouchableOpacity>
-            <View style={styles.leftSmallBox}>
+            <TouchableOpacity style={styles.leftSmallBox}>
+              <Text style={{fontSize: 16}}>Tưới nước</Text>
+            </TouchableOpacity>
+            {/* <View style={styles.leftSmallBox}>
               <Text>Nước hiện có</Text>
               <Text>5000 ml</Text>
-            </View>
+            </View> */}
           </View>
         </View>
         <View style={styles.container}>
@@ -156,7 +171,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   rightSmallBox: {
-    backgroundColor: "white",
+    backgroundColor: "#0A7514",
+    opacity: 0.7,
     borderRadius: 20,
     padding: 15,
     marginVertical: 10,
@@ -175,7 +191,9 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   selectedBox: {
-    backgroundColor: "#00B4D8",
+    // backgroundColor: "#00B4D8",
+    backgroundColor: "#0A7514",
+    opacity:1,
   },
   progressContainer: {
     flex: 3,

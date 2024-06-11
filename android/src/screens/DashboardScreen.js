@@ -202,15 +202,15 @@ function DashboardScreen({ navigation }) {
             <View style={{width: '100%', direction:'flex', flexDirection:'row', justifyContent:'center'}}>
               <ProgressBar 
                 progress={item?.value / (item.max - item.min)} 
-                height={20} 
-                width={250}
+                height={25} 
+                width={300}
                 style={styles.progressbar} 
                 color='#9cf89a' 
                 />
             </View>
             <View style={tailwind('flex-1 flex-row justify-between')}>
               <Text style={styles.infoText}>Thời gian còn lại:</Text>
-              <Text style={styles.normalText}>{item?.remainingTime}</Text>
+              <Text style={styles.normalText}>{(item?.remainingTime || 0) / 1000}s</Text>
             </View>
             <View style={tailwind('flex-1 flex-row justify-between')}>
               <Text style={styles.infoText}>Dung dịch đã bơm:</Text>
@@ -301,13 +301,13 @@ const styles = StyleSheet.create({
     width: "47%",
     marginTop: 10,
     backgroundColor: "#0A7514",
-    opacity: 0.5
+    opacity: 0.7
   },
   buttonText: {
     // color: "black",
     color: "white",
-    fontSize: 12,
-    // fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "600",
   },
   buttonContent: {
     flexDirection: "row",

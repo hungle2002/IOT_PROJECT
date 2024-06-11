@@ -8,7 +8,7 @@ const mqtt_1 = __importDefault(require("mqtt"));
 const Socket_1 = __importDefault(require("../providers/Socket"));
 const sensorKeys_1 = require("../config/sensorKeys");
 const adafruitUsername = 'hungle2002'; // Replace with your Adafruit username
-const adafruitKey = 'aio_HpSP344FHr6LJZXWURmlqSYARZlj'; // Replace with your Adafruit key
+const adafruitKey = 'aio_vfen695FX5cf7TCzlrBI5k0ZFusp'; // Replace with your Adafruit key
 const brokerUrl = 'mqtts://io.adafruit.com/api/v2/hungle2002/'; // Replace with your username
 let client;
 const mqttOptions = {

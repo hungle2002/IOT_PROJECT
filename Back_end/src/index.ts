@@ -17,7 +17,7 @@ const app = express();
 const server = http.createServer(app);
 
 // app mounting
-app.use(cors(corConfig));
+app.use(cors());
 app.use(express.json());
 
 // init socket
