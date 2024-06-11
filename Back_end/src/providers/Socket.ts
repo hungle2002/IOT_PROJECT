@@ -46,6 +46,30 @@ class Socket {
         publishData(data[0], Number(data[1]));
       });
 
+      socket.on('start_fertilizer_mix', () => {
+        publishData('iot-btl.mixer1', 1);
+        // update system status to 1
+        Fertilizer.updateActiveFertilizer({
+          status: 1,
+        });
+      });
+
+      socket.on('start_pump_in', () => {
+        publishData('iot-btl.pumpin', 1);
+        // update system status to 1
+        Fertilizer.updateActiveFertilizer({
+          status: 3,
+        });
+      });
+
+      socket.on('start_pump_out', () => {
+        publishData('iot-btl.pumpout', 1);
+        // update system status to 1
+        Fertilizer.updateActiveFertilizer({
+          status: 5,
+        });
+      });
+
       // console.log('Test publish data pumpin');
       // publishData(pumpKey[0], 1);
     });
@@ -190,6 +214,7 @@ class Socket {
       pumpIn: false,
       pumpOut: false,
       areaId: 0,
+      status: id === 2 && value === 0 ? 2 : 1,
     });
   }
 
@@ -205,7 +230,7 @@ class Socket {
     // }
 
     if (this.io) {
-      this.io.emit('update_pump', [value, isPumpIn]);
+      this.io.emit('update_pump', [value, isPumpIn, new Date()]);
       // update database
       if (value === 1) {
         Fertilizer.updateActiveFertilizer({
@@ -213,7 +238,9 @@ class Socket {
         });
       } else {
         Fertilizer.updateActiveFertilizer({
-          ...(isPumpIn ? {pumpIn: false, endedAt: new Date()} : {pumpOut: false, endedAt: new Date()}),
+          ...(isPumpIn
+            ? {pumpIn: false, endedAt: new Date(), status: 4}
+            : {pumpOut: false, endedAt: new Date(), status: 0}),
         });
       }
       // Fertilizer.updateActiveFertilizer({

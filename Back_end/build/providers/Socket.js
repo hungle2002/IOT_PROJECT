@@ -40,6 +40,27 @@ class Socket {
                 console.log('Update device: ', data);
                 (0, mqtt_1.publishData)(data[0], Number(data[1]));
             });
+            socket.on('start_fertilizer_mix', () => {
+                (0, mqtt_1.publishData)('iot-btl.mixer1', 1);
+                // update system status to 1
+                Fertilizer_1.default.updateActiveFertilizer({
+                    status: 1,
+                });
+            });
+            socket.on('start_pump_in', () => {
+                (0, mqtt_1.publishData)('iot-btl.pumpin', 1);
+                // update system status to 1
+                Fertilizer_1.default.updateActiveFertilizer({
+                    status: 3,
+                });
+            });
+            socket.on('start_pump_out', () => {
+                (0, mqtt_1.publishData)('iot-btl.pumpout', 1);
+                // update system status to 1
+                Fertilizer_1.default.updateActiveFertilizer({
+                    status: 5,
+                });
+            });
             // console.log('Test publish data pumpin');
             // publishData(pumpKey[0], 1);
         });
@@ -178,6 +199,7 @@ class Socket {
             pumpIn: false,
             pumpOut: false,
             areaId: 0,
+            status: id === 2 && value === 0 ? 2 : 1,
         });
     }
     update_pump(value, isPumpIn) {
@@ -191,7 +213,7 @@ class Socket {
         //   publishData(pumpKey[0], 0);
         // }
         if (this.io) {
-            this.io.emit('update_pump', [value, isPumpIn]);
+            this.io.emit('update_pump', [value, isPumpIn, new Date()]);
             // update database
             if (value === 1) {
                 Fertilizer_1.default.updateActiveFertilizer({
@@ -200,7 +222,9 @@ class Socket {
             }
             else {
                 Fertilizer_1.default.updateActiveFertilizer({
-                    ...(isPumpIn ? { pumpIn: false, endedAt: new Date() } : { pumpOut: false, endedAt: new Date() }),
+                    ...(isPumpIn
+                        ? { pumpIn: false, endedAt: new Date(), status: 4 }
+                        : { pumpOut: false, endedAt: new Date(), status: 0 }),
                 });
             }
             // Fertilizer.updateActiveFertilizer({

@@ -81,7 +81,8 @@ function DashboardScreen({ navigation }) {
 
   const handleStart = () => {
     try {
-      socket.emit("update_device", ['iot-btl.mixer1', 1]);
+      // socket.emit("update_device", ['iot-btl.mixer1', 1]);
+      socket.emit("start_fertilizer_mix");
     } catch (error) {
       console.log(error);
     }
@@ -95,11 +96,11 @@ function DashboardScreen({ navigation }) {
       let remainingTime = FERTILIZER_RUN;
       let isRunning = false
 
-      if (id === activeFertilizer.mixerId) {
+      if (id === activeFertilizer.mixerId && !activeFertilizer.pumpIn && !activeFertilizer.pumpOut && activeFertilizer.status === 1) {
         remainingTime = FERTILIZER_RUN + new Date(activeFertilizer.startedAt).valueOf() - new Date().valueOf() < 0 ? 0 : FERTILIZER_RUN + new Date(activeFertilizer.startedAt).valueOf() - new Date().valueOf();
         currentValue = (FERTILIZER_RUN - remainingTime) / FERTILIZER_RUN * item.mixVolume;
         isRunning = true;
-      } else if (id < activeFertilizer.mixerId) {
+      } else if (id < activeFertilizer.mixerId && activeFertilizer.status >0) {
         currentValue = item.mixVolume;
         remainingTime = 0;
       }
@@ -186,6 +187,24 @@ function DashboardScreen({ navigation }) {
             return item;
           })
         );
+      }
+    });
+
+    socket.on(`update_pump`, (value) => {
+      // [value, isPumpIn, startedAt]
+      if (value[0] === 0) {
+        if (!value[1]){
+          setConditionSetting((prevConditionSetting) =>(
+            prevConditionSetting.map((item, index) => {
+                return { 
+                  ...item, 
+                  remainingTime: FERTILIZER_RUN,
+                  value: 0,
+                  isRunning : false,
+                };
+            })
+          ))
+        }
       }
     });
   }, [socket]);
