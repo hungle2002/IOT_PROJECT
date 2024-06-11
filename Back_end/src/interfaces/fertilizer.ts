@@ -14,4 +14,5 @@ export interface IActiveFertilizer {
   pumpIn?: boolean;
   pumpOut?: boolean;
   areaId?: number;
+  status?: number;
 }

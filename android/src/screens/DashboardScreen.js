@@ -9,6 +9,7 @@ import {
 import { useTailwind } from "tailwind-rn";
 import * as React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faPlay, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { search } from "../apiServices/searchService";
 import Modes from "../config/mode";
 import { SocketContext } from "../context/socketContext";
@@ -19,7 +20,6 @@ const FERTILIZER_RUN = 10 * 1000;
 
 function DashboardScreen({ navigation }) {
   const socket = React.useContext(SocketContext);
-  const defaultValue = [32, 43, 118];
   const data = [
     {
       name: "Thùng 1",
@@ -58,40 +58,50 @@ function DashboardScreen({ navigation }) {
   // pop up model
   const [isModalVisible, setModalVisible] = React.useState(false);
 
+  const isAllowStart = condititonSetting.every((item) => item.value === 0);
 
-  // React.useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setConditionSetting((prevConditionSetting) =>
-  //       prevConditionSetting.map((item) => {
-  //         const newValue = item.value < item.max ? item.value + 1 : item.max;
-  //         return { ...item, value: newValue };
-  //       })
-  //     );
-  //   }, 1000); // Update every second
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setConditionSetting((prevConditionSetting) =>
+        prevConditionSetting.map((item) => {
+          if (item.remainingTime > 0 && item.isRunning) {
+            return { 
+              ...item, 
+              value : (FERTILIZER_RUN - item.remainingTime + 1000) / FERTILIZER_RUN * item.max,
+              remainingTime: item.remainingTime - 1000,
+            };
+          }
+          return item;
+        })
+      );
+    }, 1000); // Update every second
 
-  //   return () => clearInterval(interval);
-  // }, []);
+    return () => clearInterval(interval);
+  }, []);
 
-  // function to update value of condititon
-  // const updateValue = (value) => {
-  //   const tmp = [value.tempValue, value.lightValue, value.soilValue];
-  //   setConditionValue(tmp);
-  // };
-  // function to update setting condition
+  const handleStart = () => {
+    try {
+      socket.emit("update_device", ['iot-btl.mixer1', 1]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const updateSetting = (res) => {
     // const 
     const { activeFertilizer, fertilizerSchedule} = res;
     const currentSetting = fertilizerSchedule?.map((item, id) => {
 
       let currentValue = 0;
-      let startedAt = FERTILIZER_RUN;
+      let remainingTime = FERTILIZER_RUN;
+      let isRunning = false
 
       if (id === activeFertilizer.mixerId) {
-        startedAt = new Date(activeFertilizer.startedAt);
-        currentValue = (new Date().valueOf() + FERTILIZER_RUN - startedAt.valueOf() > FERTILIZER_RUN ? FERTILIZER_RUN : new Date().valueOf() + FERTILIZER_RUN - startedAt.valueOf()) / FERTILIZER_RUN * item.mixVolume;
+        remainingTime = FERTILIZER_RUN + new Date(activeFertilizer.startedAt).valueOf() - new Date().valueOf() < 0 ? 0 : FERTILIZER_RUN + new Date(activeFertilizer.startedAt).valueOf() - new Date().valueOf();
+        currentValue = (FERTILIZER_RUN - remainingTime) / FERTILIZER_RUN * item.mixVolume;
+        isRunning = true;
       } else if (id < activeFertilizer.mixerId) {
         currentValue = item.mixVolume;
-        startedAt = 0
+        remainingTime = 0;
       }
 
       return {
@@ -100,8 +110,9 @@ function DashboardScreen({ navigation }) {
         mode: item.type,
         min: 0,
         max: item.mixVolume,
-        startedAt: startedAt,
+        remainingTime : remainingTime,
         fertilizer: item.name,
+        isRunning,
       };
     });
     // console.log(currentSetting);
@@ -141,69 +152,99 @@ function DashboardScreen({ navigation }) {
     };
     fetchAPI();
   }, []);
-  // socket liston on updating condition value
-  // React.useEffect(() => {
-  //   socket.on(`update_condition`, (value) => {
-  //     setConditionValue(value);
-  //   });
-  // }, [socket]);
 
-  // socket liston on updating one condition value
+  // socket liston on 
   React.useEffect(() => {
     socket.on(`update_fertilizer_mixer`, (value) => {
       // [value, id, startAt]
+      // off mixer
+      if ( value[0] === 0 ) {
+        setConditionSetting((prevConditionSetting) =>
+          prevConditionSetting.map((item, index) => {
+            if (index === value[1]) {
+              return { 
+                ...item, 
+                remainingTime: 0,
+                currentValue : item.mixVolume,
+                isRunning : false,
+              };
+            }
+            return item;
+          })
+        );
+      } else {
+        setConditionSetting((prevConditionSetting) =>
+          prevConditionSetting.map((item, index) => {
+            if (index === value[1]) {
+              return { 
+                ...item, 
+                remainingTime: FERTILIZER_RUN,
+                currentValue : 0,
+                isRunning : true,
+              };
+            }
+            return item;
+          })
+        );
+      }
     });
   }, [socket]);
 
 
   return (
-    <ScrollView
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      <View style={tailwind("w-full flex-1 flex-col items-center")}>
+    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+      <View style={tailwind('w-full flex-1 flex-col items-center')}>
         {condititonSetting?.map((item, index) => (
           <View key={index} style={styles.circularRect}>
-            <View style={tailwind("items-center")}>
-              <Text>{item.name}</Text>
+            <View style={tailwind('items-center')}>
+              <Text style={{ fontWeight: 'bold', marginBottom: 5, fontSize: 18 }}>{item?.name}</Text>
             </View>
-            <ProgressBar
-              progress={item.value / (item.max - item.min)}
-              height={20}
-              style={styles.progressbar}
-            />
-            <View style={tailwind("flex-1 flex-row justify-between")}>
+            <View style={{width: '100%', direction:'flex', flexDirection:'row', justifyContent:'center'}}>
+              <ProgressBar 
+                progress={item?.value / (item.max - item.min)} 
+                height={20} 
+                width={250}
+                style={styles.progressbar} 
+                color='#9cf89a' 
+                />
+            </View>
+            <View style={tailwind('flex-1 flex-row justify-between')}>
               <Text style={styles.infoText}>Thời gian còn lại:</Text>
-              <Text style={styles.infoText}>{item?.remainingTime}</Text>
+              <Text style={styles.normalText}>{item?.remainingTime}</Text>
             </View>
-            <View style={tailwind("flex-1 flex-row justify-between")}>
-              <Text style={styles.infoText}>Số ml dung dịch đã bơm:</Text>
-              <Text style={styles.infoText}>
-                {item.value} / {item.max} ml
+            <View style={tailwind('flex-1 flex-row justify-between')}>
+              <Text style={styles.infoText}>Dung dịch đã bơm:</Text>
+              <Text style={styles.normalText}>
+                {item?.value} / {item?.max} ml
               </Text>
             </View>
-            <View style={tailwind("flex-1 flex-row justify-between")}>
+            <View style={tailwind('flex-1 flex-row justify-between')}>
               <Text style={styles.infoText}>Tên dung dịch:</Text>
-              <Text style={styles.infoText}>{item.fertilizer}</Text>
+              <Text style={styles.normalText}>{item?.fertilizer}</Text>
+            </View>
+            <View style={tailwind('flex-1 flex-row justify-between')}>
+              <Text style={styles.infoText}>Chế độ trộn:</Text>
+              <Text style={styles.normalText}>{item?.mode}</Text>
             </View>
           </View>
         ))}
       </View>
       <View>
         <View style={styles.container}>
-          <TouchableOpacity
-            onPress={() => setModalVisible(true)}
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>Tạo mới bộ trộn phân</Text>
+          <TouchableOpacity onPress={handleStart} style={isAllowStart ? styles.button : styles.disableButton}>
+            <View style={styles.buttonContent}>
+              <FontAwesomeIcon icon={faPlay} size={15} color="white" />
+              <Text style={styles.buttonText}>Bắt đầu trộn</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.button}>
+            <View style={styles.buttonContent}>
+              <FontAwesomeIcon icon={faPlus} size={15} color="white" />
+              <Text style={styles.buttonText}>Tạo mới</Text>
+            </View>
           </TouchableOpacity>
         </View>
-        <PopupMenu
-          isVisible={isModalVisible}
-          onClose={() => setModalVisible(false)}
-          onRefresh={onRefresh}
-        />
+        <PopupMenu isVisible={isModalVisible} onClose={() => setModalVisible(false)} onRefresh={onRefresh} />
       </View>
     </ScrollView>
   );
@@ -212,23 +253,34 @@ function DashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
   circularRect: {
     backgroundColor: "white",
-    borderRadius: 20,
+    borderRadius: 10,
     padding: 10,
     marginVertical: 10,
     width: "90%",
   },
   progressbar: {
-    width: "100%",
+    // width: "100%",
+    marginBottom: 10,
   },
   infoText: {
-    color: "#00796B",
+    // color: "#00796B",
+    fontSize: 14,
+    marginVertical: 2,
+    fontWeight: "500",
+  },
+  normalText: {
+    // color: "#00796B",
     fontSize: 14,
     marginVertical: 2,
   },
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "center",
+    paddingBottom: 10,
+    flexDirection: "row",
+    width: "90%",
+    marginLeft: "5%",
   },
   button: {
     backgroundColor: "#ffffff",
@@ -236,13 +288,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 20,
     alignItems: "center",
-    width: "90%",
+    width: "47%",
+    marginTop: 10,
+    backgroundColor: "#0A7514"
+  },
+  disableButton : {
+    backgroundColor: "#ffffff",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    alignItems: "center",
+    width: "47%",
+    marginTop: 10,
+    backgroundColor: "#0A7514",
+    opacity: 0.5
   },
   buttonText: {
-    color: "black",
-    fontSize: 16,
-    fontWeight: "bold",
+    // color: "black",
+    color: "white",
+    fontSize: 12,
+    // fontWeight: "600",
   },
+  buttonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  }
 });
 
 export default DashboardScreen;

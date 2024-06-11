@@ -25,6 +25,17 @@ const fertilizerActiveSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  status: {
+    type: Number,
+    default: 0,
+    // 0: not started
+    // 1: mixing fertilizer
+    // 2: done mixed
+    // 3: pumping in
+    // 4: done pumping in
+    // 5: pumping out
+    // 6: done pumping out
+  },
 });
 
 export default mongoose.model('FertilizerActive', fertilizerActiveSchema);
