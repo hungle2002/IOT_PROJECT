@@ -24,8 +24,6 @@ function WaterScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedGarden, setSelectedGarden] = useState("1");
 
-  const [progressvalue, setprogressvalue] = useState(0.3);
-
   const [pumpInRemainTime,  setPumpInRemainTime] = useState(PUMP_IN_RUN);
   const [pumpOutRemainTime,  setPumpOutRemainTime] = useState(PUMP_OUT_RUN);
 
@@ -205,7 +203,7 @@ function WaterScreen() {
             </View>
             <View style={tailwind("flex-1 flex-row justify-between")}>
               <Text style={styles.infoText}>Số ml dung dịch đã bơm:</Text>
-              <Text style={styles.infoText}>{(PUMP_IN_RUN-pumpInRemainTime)*pumpVolume/(2*PUMP_IN_RUN)} / {pumpVolume/2}</Text>
+              <Text style={styles.infoText}>{Math.floor((PUMP_IN_RUN-pumpInRemainTime)*pumpVolume/(2*PUMP_IN_RUN))} / {pumpVolume/2}</Text>
             </View>
           </View>
         </View>
@@ -227,7 +225,7 @@ function WaterScreen() {
             </View>
             <View style={tailwind("flex-1 flex-row justify-between")}>
               <Text style={styles.infoText}>Số ml dung dịch đã tưới:</Text>
-              <Text style={styles.infoText}>{(PUMP_OUT_RUN-pumpOutRemainTime)*pumpVolume*1.5/PUMP_OUT_RUN} / {pumpVolume * 1.5}</Text>
+              <Text style={styles.infoText}>{Math.floor((PUMP_OUT_RUN-pumpOutRemainTime)*pumpVolume*1.5/PUMP_OUT_RUN)} / {pumpVolume * 1.5}</Text>
             </View>
           </View>
         </View>

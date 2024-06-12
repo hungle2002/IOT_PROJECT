@@ -3,7 +3,7 @@ import Socket from '../providers/Socket';
 import {areaKey, fertilizerKey, pumpKey, sensorKey} from '../config/sensorKeys';
 
 const adafruitUsername = 'hungle2002'; // Replace with your Adafruit username
-const adafruitKey = 'aio_vfen695FX5cf7TCzlrBI5k0ZFusp'; // Replace with your Adafruit key
+const adafruitKey = 'aio_WnnJ11VpSDI3VDULQfH2QsnCTAqf'; // Replace with your Adafruit key
 const brokerUrl = 'mqtts://io.adafruit.com/api/v2/hungle2002/'; // Replace with your username
 let client: MqttClient;
 
